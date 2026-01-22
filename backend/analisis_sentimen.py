@@ -2,26 +2,30 @@ from sqlalchemy import create_engine, text
 from transformers import pipeline
 import torch
 
-# DB config
+# db config
 DB_USER = 'postgres'
 DB_PASS = 'admin' 
 DB_NAME = 'db_pkp_aceh'
 
-# Connect DB
+# REVISI: Daftar kata pemicu dipersempit
+# Hanya fokus pada tekanan/kritik, hindari kata teknis bencana
+TRIGGER_WORDS = [
+    'desak', 'tuntut', 'kecam', 'kritik', 'tagih', 
+    'kecewa', 'sayangkan', 'soroti', 'pertanyakan',
+    'protes', 'demo', 'tolak', 'gugat', 'parah'
+]
+
 engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@localhost:5432/{DB_NAME}')
 
 def get_data():
-    # fetch unprocessed articles
     with engine.connect() as conn:
-        q = text("SELECT id, title, content FROM articles WHERE sentiment_label IS NULL AND content IS NOT NULL")
+        q = text("SELECT id, title, content FROM articles WHERE content IS NOT NULL")
         return conn.execute(q).fetchall()
 
 def save_result(id, label, score):
-    # map to indo
-    l_map = {'positive': 'Positif', 'neutral': 'Netral', 'negative': 'Negatif'}
-    final_label = l_map.get(label, 'Netral')
+    label_map = {'positive': 'Positif', 'neutral': 'Netral', 'negative': 'Negatif'}
+    final_label = label_map.get(label, 'Netral')
     
-    # update row
     with engine.connect() as conn:
         q = text("UPDATE articles SET sentiment_label = :l, sentiment_score = :s WHERE id = :id")
         conn.execute(q, {"l": final_label, "s": score, "id": id})
@@ -29,7 +33,6 @@ def save_result(id, label, score):
 
 def run():
     print("Loading model...")
-    # IndoBERT sentiment model
     nlp = pipeline(
         "sentiment-analysis", 
         model="w11wo/indonesian-roberta-base-sentiment-classifier",
@@ -39,33 +42,41 @@ def run():
     )
     
     data = get_data()
-    total = len(data)
-    print(f"Processing {total} articles...")
+    print(f"Re-analyzing {len(data)} articles...")
 
-    neg_count = 0
-    
     for i, row in enumerate(data):
         id, title, content = row
-        
-        # combine title + start of content for context
         text_in = f"{title}. {content}"[:1000]
         
         try:
+            # 1. AI Analysis
             res = nlp(text_in)[0]
             lab = res['label']
             sco = res['score']
             
+            # 2. Manual Override (Logic Revisi)
+            title_lower = title.lower()
+            is_forced = False
+            
+            for trigger in TRIGGER_WORDS:
+                if trigger in title_lower:
+                    lab = 'negative'
+                    sco = 0.99
+                    is_forced = True
+                    break
+            
             save_result(id, lab, sco)
             
-            if lab == 'negative': neg_count += 1
+            status = lab.upper()
+            if is_forced: status += " (FORCED)"
             
-            print(f"[{i+1}/{total}] {lab.upper()}: {title[:30]}...")
+            # Print progress biar kelihatan bedanya
+            print(f"[{i+1}] {status}: {title[:50]}...")
             
         except Exception as e:
             print(f"Err ID {id}: {e}")
 
-    print("-" * 30)
-    print(f"Done. Negatives found: {neg_count}")
+    print("Done.")
 
 if __name__ == "__main__":
     run()
