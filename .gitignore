@@ -1,0 +1,14 @@
+# Node.js
+/frontend/node_modules
+/frontend/.next
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+
+# Python
+/backend/sentimen/
+__pycache__/
+*.pyc
+
+# VSCode
+.vscode/
