@@ -11,12 +11,9 @@ async function getArticles() {
     );
     return res.rows.map((row: any) => ({
       ...row,
-      published_date: new Date(row.published_date).toLocaleDateString('id-ID', {
-        day: 'numeric', month: 'short', year: 'numeric'
-      }),
+      // published_date is now passed as-is from the database
       // extract domain name
-      media_name: new URL(row.url).hostname.replace('www.', ''),
-      created_at: null 
+      media_name: new URL(row.url).hostname.replace('www.', '')
     }));
   } catch (error) {
     console.error(error);

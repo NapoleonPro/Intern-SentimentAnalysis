@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 
 // Props interface untuk data dari server component
 interface Article {
@@ -9,6 +10,7 @@ interface Article {
   content: string;
   url: string;
   published_date: string;
+  created_at: string; // Added this line
   sentiment_label: string;
   sentiment_score: number;
   media_name: string;
@@ -30,7 +32,7 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
     }
     
     const dateNumbers = initialData
-      .map(article => new Date(article.published_date).getTime())
+      .map(article => new Date(article.created_at).getTime()) // Changed to created_at
       .filter(t => !isNaN(t)); // Filter out invalid dates
 
     if (dateNumbers.length === 0) {
@@ -260,7 +262,9 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          {item.published_date}
+                          {new Date(item.published_date).toLocaleDateString('id-ID', {
+                            day: 'numeric', month: 'short', year: 'numeric'
+                          })}
                         </span>
                         <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded font-medium text-xs">
                           {item.media_name}
@@ -283,6 +287,13 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                 </div>
               ))}
             </div>
+            {negativeList.length > 5 && (
+              <div className="bg-slate-50/80 border-t border-slate-100 py-3 px-6 text-center">
+                <Link href="/peringatan" className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors group">
+                  Lihat Semua {negativeList.length} Isu <span className="group-hover:translate-x-1 inline-block transition-transform">&rarr;</span>
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -310,7 +321,11 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
               <tbody className="divide-y divide-slate-100">
                 {filteredData.map((item) => (
                   <tr key={item.id} className="group hover:bg-blue-50/50 transition-colors">
-                    <td className="px-6 py-4 text-slate-600 font-medium whitespace-nowrap">{item.published_date}</td>
+                    <td className="px-6 py-4 text-slate-600 font-medium whitespace-nowrap">
+                      {new Date(item.published_date).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                      })}
+                    </td>
                     <td className="px-6 py-4">
                       <span className="inline-block border border-slate-200 bg-white px-2 py-1 rounded text-xs font-medium text-slate-700">
                         {item.media_name}
