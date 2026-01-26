@@ -23,7 +23,32 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
   const [filterSentiment, setFilterSentiment] = useState('Semua');
   const [filterMedia, setFilterMedia] = useState('Semua');
 
-  // Filter data
+  // Find the last updated time
+  const lastUpdated = useMemo(() => {
+    if (!initialData || initialData.length === 0) {
+      return null;
+    }
+    
+    const dateNumbers = initialData
+      .map(article => new Date(article.published_date).getTime())
+      .filter(t => !isNaN(t)); // Filter out invalid dates
+
+    if (dateNumbers.length === 0) {
+        return null;
+    }
+
+    const latestDate = new Date(Math.max(...dateNumbers));
+
+    return latestDate.toLocaleString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+  }, [initialData]);
+
+  // Data for table (filtered)
   const filteredData = useMemo(() => {
     return initialData.filter(item => {
       const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -33,21 +58,24 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
     });
   }, [initialData, searchTerm, filterSentiment, filterMedia]);
 
-  // Statistics
+  // Statistics for dashboard summary (unfiltered)
   const stats = useMemo(() => {
-    const total = filteredData.length;
-    const negative = filteredData.filter(x => x.sentiment_label === 'Negatif').length;
-    const positive = filteredData.filter(x => x.sentiment_label === 'Positif').length;
-    const neutral = filteredData.filter(x => x.sentiment_label === 'Netral').length;
+    const total = initialData.length;
+    const negative = initialData.filter(x => x.sentiment_label === 'Negatif').length;
+    const positive = initialData.filter(x => x.sentiment_label === 'Positif').length;
+    const neutral = initialData.filter(x => x.sentiment_label === 'Netral').length;
     return { total, negative, positive, neutral };
-  }, [filteredData]);
+  }, [initialData]);
 
-  // Get unique media
+  // Get unique media for filter dropdown
   const uniqueMedia = useMemo(() => {
     return ['Semua', ...Array.from(new Set(initialData.map(item => item.media_name)))];
   }, [initialData]);
 
-  const negativeList = filteredData.filter(x => x.sentiment_label === 'Negatif');
+  // Negative list for warning (unfiltered)
+  const negativeList = useMemo(() => {
+    return initialData.filter(x => x.sentiment_label === 'Negatif');
+  }, [initialData]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50 flex flex-col">
@@ -72,7 +100,11 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-medium">{new Date().toLocaleString('id-ID')}</span>
+              {lastUpdated ? (
+                <span className="font-medium">Update Terakhir: {lastUpdated}</span>
+              ) : (
+                <span className="font-medium">Belum ada data</span>
+              )}
             </div>
           </div>
         </div>
