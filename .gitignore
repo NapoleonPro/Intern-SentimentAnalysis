@@ -5,6 +5,9 @@
 /frontend/yarn-debug.log*
 /frontend/yarn-error.log*
 
+# data
+/backend/data/media_mitra.csv
+
 # Python
 /backend/sentimen/
 __pycache__/
