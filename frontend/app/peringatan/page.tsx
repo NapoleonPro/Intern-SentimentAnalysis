@@ -1,9 +1,6 @@
 import Link from 'next/link';
 import { query } from '../../lib/db';
-
-// force dynamic rendering
 export const dynamic = 'force-dynamic';
-
 interface Article {
   id: number;
   title: string;
@@ -13,13 +10,12 @@ interface Article {
   created_at: string;
   media_name: string;
 }
-
 async function getNegativeArticles(): Promise<Article[]> {
   try {
     const res = await query(
       "SELECT * FROM articles WHERE sentiment_label = 'Negatif' ORDER BY created_at DESC"
     );
-    return res.rows.map((row: any) => ({
+    return res.rows.map((row) => ({
       ...row,
       media_name: new URL(row.url).hostname.replace('www.', ''),
       published_date: new Date(row.published_date).toLocaleDateString('id-ID', {
@@ -31,8 +27,6 @@ async function getNegativeArticles(): Promise<Article[]> {
     return [];
   }
 }
-
-// Reusable ArticleItem component
 function ArticleItem({ item }: { item: Article }) {
   return (
     <div className="bg-white p-5 rounded-xl shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-300">
@@ -69,14 +63,10 @@ function ArticleItem({ item }: { item: Article }) {
     </div>
   );
 }
-
-
 export default async function PeringatanPage() {
   const negativeArticles = await getNegativeArticles();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-red-50">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50">
         <div className="w-full px-8 py-5">
           <div className="flex justify-between items-center">
@@ -99,7 +89,6 @@ export default async function PeringatanPage() {
           </div>
         </div>
       </header>
-
       <main className="w-full px-8 py-8">
         <div className="grid grid-cols-1 gap-4">
           {negativeArticles.length > 0 ? (

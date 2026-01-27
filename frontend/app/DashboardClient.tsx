@@ -1,46 +1,36 @@
 'use client';
-
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-
-// Props interface untuk data dari server component
 interface Article {
   id: number;
   title: string;
   content: string;
   url: string;
   published_date: string;
-  created_at: string; // Added this line
+  created_at: string;
   sentiment_label: string;
   sentiment_score: number;
   media_name: string;
 }
-
 interface DashboardClientProps {
   initialData: Article[];
 }
-
 export default function DashboardClient({ initialData = [] }: DashboardClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSentiment, setFilterSentiment] = useState('Semua');
   const [filterMedia, setFilterMedia] = useState('Semua');
-
-  // Find the last updated time
   const lastUpdated = useMemo(() => {
     if (!initialData || initialData.length === 0) {
       return null;
     }
     
     const dateNumbers = initialData
-      .map(article => new Date(article.created_at).getTime()) // Changed to created_at
-      .filter(t => !isNaN(t)); // Filter out invalid dates
-
+      .map(article => new Date(article.created_at).getTime())
+      .filter(t => !isNaN(t));
     if (dateNumbers.length === 0) {
         return null;
     }
-
     const latestDate = new Date(Math.max(...dateNumbers));
-
     return latestDate.toLocaleString('id-ID', {
         year: 'numeric',
         month: 'long',
@@ -49,8 +39,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
         minute: '2-digit'
     });
   }, [initialData]);
-
-  // Data for table (filtered)
   const filteredData = useMemo(() => {
     return initialData.filter(item => {
       const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -59,8 +47,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
       return matchSearch && matchSentiment && matchMedia;
     });
   }, [initialData, searchTerm, filterSentiment, filterMedia]);
-
-  // Statistics for dashboard summary (unfiltered)
   const stats = useMemo(() => {
     const total = initialData.length;
     const negative = initialData.filter(x => x.sentiment_label === 'Negatif').length;
@@ -68,20 +54,14 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
     const neutral = initialData.filter(x => x.sentiment_label === 'Netral').length;
     return { total, negative, positive, neutral };
   }, [initialData]);
-
-  // Get unique media for filter dropdown
   const uniqueMedia = useMemo(() => {
     return ['Semua', ...Array.from(new Set(initialData.map(item => item.media_name)))];
   }, [initialData]);
-
-  // Negative list for warning (unfiltered)
   const negativeList = useMemo(() => {
     return initialData.filter(x => x.sentiment_label === 'Negatif');
   }, [initialData]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50 flex flex-col">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50">
         <div className="w-full px-8 py-5">
           <div className="flex justify-between items-center">
@@ -111,11 +91,8 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
           </div>
         </div>
       </header>
-
       <main className="flex-1 w-full px-8 py-8 overflow-y-auto">
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {/* Total Berita */}
           <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-300 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -129,8 +106,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
               </div>
             </div>
           </div>
-
-          {/* Positif */}
           <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-300 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -147,8 +122,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
               </div>
             </div>
           </div>
-
-          {/* Netral */}
           <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-300 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -165,8 +138,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
               </div>
             </div>
           </div>
-
-          {/* Isu Negatif */}
           <div className="bg-gradient-to-br from-red-500 to-rose-600 border-0 rounded-xl shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/30 transition-all duration-300 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -184,8 +155,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
             </div>
           </div>
         </div>
-
-        {/* Filter Section */}
         <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50 mb-8 p-5">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -200,7 +169,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                 className="w-full pl-10 pr-4 h-11 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
-
             <div className="flex gap-3">
               <div className="relative">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10">
@@ -217,7 +185,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                   <option value="Negatif">Negatif</option>
                 </select>
               </div>
-
               <select
                 value={filterMedia}
                 onChange={(e) => setFilterMedia(e.target.value)}
@@ -230,8 +197,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
             </div>
           </div>
         </div>
-
-        {/* Warning Alert */}
         {negativeList.length > 0 && (
           <div className="border-0 rounded-xl shadow-lg shadow-red-500/10 mb-8 overflow-hidden">
             <div className="bg-gradient-to-r from-red-500 to-rose-500 py-4 px-6">
@@ -296,8 +261,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
             )}
           </div>
         )}
-
-        {/* Data Table */}
         <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50 overflow-hidden">
           <div className="bg-slate-50/80 border-b border-slate-100 py-4 px-6">
             <div className="flex justify-between items-center">
@@ -361,8 +324,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
               </tbody>
             </table>
           </div>
-
-          {/* Empty State */}
           {filteredData.length === 0 && (
             <div className="py-20 text-center">
               <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">

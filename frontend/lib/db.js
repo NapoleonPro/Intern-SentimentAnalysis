@@ -1,6 +1,4 @@
 import { Pool } from 'pg';
-
-// db configuration
 const pool = new Pool({
   user: 'postgres',
   password: 'admin', 
@@ -8,5 +6,4 @@ const pool = new Pool({
   port: 5432,
   database: 'db_pkp_aceh',
 });
-
 export const query = (text, params) => pool.query(text, params);

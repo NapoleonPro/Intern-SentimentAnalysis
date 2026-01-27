@@ -1,15 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
-
-# Contoh URL berita yang akan dicek.
 url = "https://www.noa.co.id/tim-relawan-asn-bpbj-setda-aceh-salurkan-bantuan-masa-panik-untuk-korban-banjir-tamiang/"
-
 try:
     print(f"Sedang mengecek: {url}")
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Mencari elemen yang berisi konten berita.
     
     candidates = ['entry-content', 'post-content', 'article-content', 'td-post-content', 'content-inner']
     
@@ -19,7 +14,6 @@ try:
         if content_div:
             print(f"KETEMU! Isi berita ada di dalam <div class='{class_name}'>")
             
-            # Coba ambil paragraf pertama
             paragraphs = content_div.find_all('p')
             if paragraphs:
                 print(f"Jumlah Paragraf: {len(paragraphs)}")
@@ -29,6 +23,5 @@ try:
     
     if not found:
         print("Gagal menebak class isi berita secara otomatis.")
-
 except Exception as e:
     print(e)

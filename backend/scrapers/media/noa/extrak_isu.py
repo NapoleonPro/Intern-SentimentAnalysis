@@ -1,13 +1,9 @@
 from sqlalchemy import create_engine, text
 from collections import Counter
 import re
-
-# --- KONFIGURASI ---
 DB_USER = 'postgres'
-DB_PASS = 'admin' 
+DB_PASS = 'admin'
 DB_NAME = 'db_pkp_aceh'
-
-# Daftar kata umum yang dibuang (Stopwords)
 STOPWORDS = {
     'dan', 'yang', 'di', 'ke', 'dari', 'ini', 'itu', 'untuk', 'pada', 'adalah',
     'sebagai', 'dengan', 'dalam', 'juga', 'akan', 'sudah', 'saya', 'kami', 'kita',
@@ -17,22 +13,15 @@ STOPWORDS = {
     'hari', 'tahun', 'wib', 'lalu', 'masyarakat', 'provinsi', 'kabupaten',
     'ketua', 'kepala', 'dinas', 'banda', 'besar', 'barat', 'utara', 'timur'
 }
-
 engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@localhost:5432/{DB_NAME}')
-
 def clean_text(text):
-    """Membersihkan teks dan memecahnya menjadi kata-kata"""
-    # Hapus angka dan tanda baca, ubah ke huruf kecil
     text = re.sub(r'[^a-zA-Z\s]', '', text).lower()
     words = text.split()
-    # Hapus stopwords
     return [w for w in words if w not in STOPWORDS and len(w) > 3]
-
 def get_negative_news():
     with engine.connect() as conn:
         query = text("SELECT title, content FROM articles WHERE sentiment_label = 'Negatif'")
         return conn.execute(query).fetchall()
-
 def generate_warning():
     print("GENERATING EARLY WARNING REPORT...")
     print("=" * 50)
@@ -42,7 +31,6 @@ def generate_warning():
     if not neg_articles:
         print("Aman terkendali. Tidak ada isu negatif ditemukan.")
         return
-
     all_words = []
     
     print(f"DITEMUKAN {len(neg_articles)} ISU POTENSIAL:\n")
@@ -51,30 +39,22 @@ def generate_warning():
         judul = row[0]
         isi = row[1]
         
-        # Kumpulkan kata-kata untuk analisis frekuensi
         words = clean_text(f"{judul} {isi}")
         all_words.extend(words)
         
         print(f"{i+1}. {judul}")
-        # Tampilkan cuplikan singkat
         print(f"Cuplikan: {isi[:150]}...")
         print("-" * 30)
-
-    # Hitung kata kunci dominan
     word_counts = Counter(all_words)
     top_keywords = word_counts.most_common(10)
     
     print("\nKATA KUNCI DOMINAN (ISU UTAMA):")
     for word, count in top_keywords:
         print(f"{word}: muncul {count} kali")
-
     print("=" * 50)
     
-    # Update Topic Category di Database (Simpel: Ambil keyword terbanyak)
-    # Ini opsional, biar dashboard nanti ada isinya di kolom topik
     if top_keywords:
         top_topic = top_keywords[0][0].upper()
         print(f"Suggestion: Isu utama tampaknya terkait '{top_topic}'")
-
 if __name__ == "__main__":
     generate_warning()
