@@ -1,12 +1,19 @@
 import os
 from sqlalchemy import create_engine, text
-DB_USER = os.getenv('DB_USER', 'postgres')
-DB_PASS = os.getenv('DB_PASS', 'admin')
-DB_NAME = os.getenv('DB_NAME', 'db_pkp_aceh')
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DB_USER = os.getenv('DB_USER')
+DB_PASS = os.getenv('DB_PASS')
+DB_NAME = os.getenv('DB_NAME')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+
 def migrate_db():
     print("Connecting to the database...")
     try:
-        engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@localhost:5432/{DB_NAME}')
+        engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
         
         with engine.connect() as conn:
             print("Connection successful. Checking for 'analysis_method' column...")
