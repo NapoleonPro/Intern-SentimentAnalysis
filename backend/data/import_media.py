@@ -1,4 +1,4 @@
-import pandas as pd
+from pandas import read_csv  as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
