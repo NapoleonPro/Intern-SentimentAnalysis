@@ -214,8 +214,8 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                 </span>
               </div>
             </div>
-            <div className="bg-white divide-y divide-slate-100">
-              {negativeList.slice(0, 5).map((item) => (
+            <div className="bg-white divide-y divide-slate-100 h-[40vh] overflow-y-auto">
+              {negativeList.map((item) => (
                 <div key={item.id} className="p-5 hover:bg-slate-50/80 transition-colors">
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1 min-w-0">
@@ -252,17 +252,10 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                 </div>
               ))}
             </div>
-            {negativeList.length > 5 && (
-              <div className="bg-slate-50/80 border-t border-slate-100 py-3 px-6 text-center">
-                <Link href="/peringatan" className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors group">
-                  Lihat Semua {negativeList.length} Isu <span className="group-hover:translate-x-1 inline-block transition-transform">&rarr;</span>
-                </Link>
-              </div>
-            )}
           </div>
         )}
-        <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50 overflow-hidden">
-          <div className="bg-slate-50/80 border-b border-slate-100 py-4 px-6">
+        <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50">
+          <div className="bg-slate-50/80 border-b border-slate-100 py-4 px-6 rounded-t-xl">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-800">Arsip Berita Terkini</h3>
               <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-xs font-semibold">
@@ -270,34 +263,16 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
               </span>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-6 py-3 text-left font-bold text-slate-600 text-xs uppercase tracking-wider w-32">Tanggal</th>
-                  <th className="px-6 py-3 text-left font-bold text-slate-600 text-xs uppercase tracking-wider w-40">Media</th>
-                  <th className="px-6 py-3 text-left font-bold text-slate-600 text-xs uppercase tracking-wider">Judul</th>
-                  <th className="px-6 py-3 text-center font-bold text-slate-600 text-xs uppercase tracking-wider w-32">Sentimen</th>
-                  <th className="px-6 py-3 text-center font-bold text-slate-600 text-xs uppercase tracking-wider w-20">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredData.map((item) => (
-                  <tr key={item.id} className="group hover:bg-blue-50/50 transition-colors">
-                    <td className="px-6 py-4 text-slate-600 font-medium whitespace-nowrap">
-                      {new Date(item.published_date).toLocaleDateString('id-ID', {
-                        day: 'numeric', month: 'short', year: 'numeric'
-                      })}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-block border border-slate-200 bg-white px-2 py-1 rounded text-xs font-medium text-slate-700">
+          
+          {filteredData.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 h-[80vh] overflow-y-auto">
+              {filteredData.map((item) => (
+                <div key={item.id} className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
+                  <div className="p-5 flex-grow">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded font-medium text-xs">
                         {item.media_name}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-800 group-hover:text-blue-700 transition-colors">
-                      {item.title}
-                    </td>
-                    <td className="px-6 py-4 text-center">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase ${
                         item.sentiment_label === 'Negatif' ? 'bg-red-100 text-red-700' :
                         item.sentiment_label === 'Positif' ? 'bg-emerald-100 text-emerald-700' :
@@ -305,26 +280,33 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                       }`}>
                         {item.sentiment_label}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-colors"
-                        title="Buka Link"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                        </svg>
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {filteredData.length === 0 && (
+                    </div>
+                    <h3 className="font-bold text-slate-800 text-base leading-snug mb-3 hover:text-blue-700 transition-colors">
+                      {item.title}
+                    </h3>
+                  </div>
+                  <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3 flex justify-between items-center rounded-b-lg">
+                    <span className="text-xs text-slate-500 font-medium">
+                      {new Date(item.published_date).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'long', year: 'numeric'
+                      })}
+                    </span>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                      title="Buka Link"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
             <div className="py-20 text-center">
               <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-slate-400">
