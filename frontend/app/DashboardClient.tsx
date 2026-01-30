@@ -16,7 +16,6 @@ interface DashboardClientProps {
   initialData: Article[];
 }
 export default function DashboardClient({ initialData = [] }: DashboardClientProps) {
-  const [searchTerm, setSearchTerm] = useState('');
   const [filterSentiment, setFilterSentiment] = useState('Semua');
   const [filterMedia, setFilterMedia] = useState('Semua');
   const lastUpdated = useMemo(() => {
@@ -41,12 +40,11 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
   }, [initialData]);
   const filteredData = useMemo(() => {
     return initialData.filter(item => {
-      const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchSentiment = filterSentiment === 'Semua' || item.sentiment_label === filterSentiment;
       const matchMedia = filterMedia === 'Semua' || item.media_name === filterMedia;
-      return matchSearch && matchSentiment && matchMedia;
+      return matchSentiment && matchMedia;
     });
-  }, [initialData, searchTerm, filterSentiment, filterMedia]);
+  }, [initialData, filterSentiment, filterMedia]);
   const stats = useMemo(() => {
     const total = initialData.length;
     const negative = initialData.filter(x => x.sentiment_label === 'Negatif').length;
@@ -155,48 +153,6 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
             </div>
           </div>
         </div>
-        <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50 mb-8 p-5">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Cari judul berita..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 h-11 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-            </div>
-            <div className="flex gap-3">
-              <div className="relative">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-                </svg>
-                <select
-                  value={filterSentiment}
-                  onChange={(e) => setFilterSentiment(e.target.value)}
-                  className="w-40 pl-9 pr-4 h-11 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none bg-white cursor-pointer"
-                >
-                  <option value="Semua">Semua Sentimen</option>
-                  <option value="Positif">Positif</option>
-                  <option value="Netral">Netral</option>
-                  <option value="Negatif">Negatif</option>
-                </select>
-              </div>
-              <select
-                value={filterMedia}
-                onChange={(e) => setFilterMedia(e.target.value)}
-                className="w-44 px-4 h-11 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none bg-white cursor-pointer"
-              >
-                {uniqueMedia.map(media => (
-                  <option key={media} value={media}>{media}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
         {negativeList.length > 0 && (
           <div className="border-0 rounded-xl shadow-lg shadow-red-500/10 mb-8 overflow-hidden">
             <div className="bg-gradient-to-r from-red-500 to-rose-500 py-4 px-6">
@@ -214,37 +170,37 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                 </span>
               </div>
             </div>
-            <div className="bg-white divide-y divide-slate-100 h-[40vh] overflow-y-auto">
+            <div className="bg-white divide-y divide-slate-100 max-h-[60vh] overflow-y-auto">
               {negativeList.map((item) => (
-                <div key={item.id} className="p-5 hover:bg-slate-50/80 transition-colors">
-                  <div className="flex justify-between items-start gap-4">
+                <div key={item.id} className="p-3 hover:bg-slate-50/80 transition-colors">
+                  <div className="flex justify-between items-start gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-800 text-base leading-snug mb-2">
+                      <h3 className="font-semibold text-slate-800 text-sm leading-tight mb-1.5">
                         {item.title}
                       </h3>
-                      <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mb-1.5">
                         <span className="flex items-center gap-1">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           {new Date(item.published_date).toLocaleDateString('id-ID', {
                             day: 'numeric', month: 'short', year: 'numeric'
                           })}
                         </span>
-                        <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded font-medium text-xs">
+                        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium text-[11px]">
                           {item.media_name}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{item.content}</p>
+                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{item.content}</p>
                     </div>
                     <a
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-2"
+                      className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold shadow-sm transition-colors flex items-center gap-1.5"
                     >
                       Buka
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                       </svg>
                     </a>
@@ -256,19 +212,47 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
         )}
         <div className="bg-white border-0 rounded-xl shadow-sm shadow-slate-200/50">
           <div className="bg-slate-50/80 border-b border-slate-100 py-4 px-6 rounded-t-xl">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-slate-800">Arsip Berita Terkini</h3>
-              <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-xs font-semibold">
-                {filteredData.length} Data
-              </span>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-bold text-slate-800">Arsip Berita Terkini</h3>
+                <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-xs font-semibold">
+                  {filteredData.length} Data
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <div className="relative">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+                  </svg>
+                  <select
+                    value={filterSentiment}
+                    onChange={(e) => setFilterSentiment(e.target.value)}
+                    className="w-40 pl-9 pr-4 h-10 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none bg-white cursor-pointer"
+                  >
+                    <option value="Semua">Semua Sentimen</option>
+                    <option value="Positif">Positif</option>
+                    <option value="Netral">Netral</option>
+                    <option value="Negatif">Negatif</option>
+                  </select>
+                </div>
+                <select
+                  value={filterMedia}
+                  onChange={(e) => setFilterMedia(e.target.value)}
+                  className="w-44 px-4 h-10 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none bg-white cursor-pointer"
+                >
+                  {uniqueMedia.map(media => (
+                    <option key={media} value={media}>{media}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
           
           {filteredData.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 h-[80vh] overflow-y-auto">
               {filteredData.map((item) => (
-                <div key={item.id} className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
-                  <div className="p-5 flex-grow">
+                <div key={item.id} className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 h-fit">
+                  <div className="p-5">
                     <div className="flex justify-between items-start mb-2">
                       <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded font-medium text-xs">
                         {item.media_name}
@@ -314,7 +298,7 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                 </svg>
               </div>
               <p className="text-slate-600 font-semibold text-lg">Tidak ada data yang sesuai</p>
-              <p className="text-slate-400 text-sm mt-1">Coba ubah kriteria pencarian Anda</p>
+              <p className="text-slate-400 text-sm mt-1">Coba ubah kriteria filter Anda</p>
             </div>
           )}
         </div>
