@@ -4,11 +4,15 @@ from sqlalchemy import create_engine, text
 from datetime import datetime
 import time
 import random
-DB_USER = 'postgres'
-DB_PASS = 'admin'
-DB_NAME = 'db_pkp_aceh'
-DB_HOST = 'localhost'
-DB_PORT = '5432'
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+DB_USER = os.getenv('DB_USER')
+DB_PASS = os.getenv('DB_PASS')
+DB_NAME = os.getenv('DB_NAME')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
 SEARCH_QUERY = "pemerintah+aceh"
 BASE_URL = "https://beritarakyataceh.com"
 MUST_HAVE_KEYWORDS = ["pemerintah aceh", "pemprov aceh", "gubernur aceh", "wagub aceh", "sekda aceh", "dpra"]

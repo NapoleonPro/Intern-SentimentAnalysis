@@ -1,9 +1,13 @@
 from sqlalchemy import create_engine, text
 from collections import Counter
 import re
-DB_USER = 'postgres'
-DB_PASS = 'admin'
-DB_NAME = 'db_pkp_aceh'
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+DB_USER = os.getenv('DB_USER')
+DB_PASS = os.getenv('DB_PASS')
+DB_NAME = os.getenv('DB_NAME')
 STOPWORDS = {
     'dan', 'yang', 'di', 'ke', 'dari', 'ini', 'itu', 'untuk', 'pada', 'adalah',
     'sebagai', 'dengan', 'dalam', 'juga', 'akan', 'sudah', 'saya', 'kami', 'kita',
