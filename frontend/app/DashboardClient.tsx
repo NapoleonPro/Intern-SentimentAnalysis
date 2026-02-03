@@ -16,6 +16,7 @@ interface DashboardClientProps {
   initialData: Article[];
 }
 export default function DashboardClient({ initialData = [] }: DashboardClientProps) {
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterSentiment, setFilterSentiment] = useState('Semua');
   const [filterMedia, setFilterMedia] = useState('Semua');
   const lastUpdated = useMemo(() => {
@@ -40,11 +41,12 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
   }, [initialData]);
   const filteredData = useMemo(() => {
     return initialData.filter(item => {
+      const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchSentiment = filterSentiment === 'Semua' || item.sentiment_label === filterSentiment;
       const matchMedia = filterMedia === 'Semua' || item.media_name === filterMedia;
-      return matchSentiment && matchMedia;
+      return matchSearch && matchSentiment && matchMedia;
     });
-  }, [initialData, filterSentiment, filterMedia]);
+  }, [initialData, searchTerm, filterSentiment, filterMedia]);
   const stats = useMemo(() => {
     const total = initialData.length;
     const negative = initialData.filter(x => x.sentiment_label === 'Negatif').length;
@@ -217,12 +219,24 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
           <div className="bg-slate-50/80 border-b border-slate-100 py-4 px-6 rounded-t-xl">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-bold text-slate-800">Arsip Berita</h3>
+                <h3 className="text-lg font-bold text-slate-800">Arsip Berita Terkini</h3>
                 <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-xs font-semibold">
                   {filteredData.length} Data
                 </span>
               </div>
               <div className="flex gap-3">
+                <div className="relative">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Cari judul..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-52 pl-10 pr-4 h-10 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
                 <div className="relative">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
