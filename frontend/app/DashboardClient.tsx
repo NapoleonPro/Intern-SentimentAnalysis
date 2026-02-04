@@ -1,6 +1,8 @@
 'use client';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
+
 interface Article {
   id: number;
   title: string;
@@ -78,15 +80,26 @@ export default function DashboardClient({ initialData = [] }: DashboardClientPro
                 <p className="text-sm text-slate-500">Sistem Peringatan Dini Opini Publik - Pemerintah Aceh</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-500 bg-slate-100/80 px-4 py-2 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {lastUpdated ? (
-                <span className="font-medium">Update Terakhir: {lastUpdated}</span>
-              ) : (
-                <span className="font-medium">Belum ada data</span>
-              )}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3 text-sm text-slate-500 bg-slate-100/80 px-4 py-2 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {lastUpdated ? (
+                  <span className="font-medium">Update Terakhir: {lastUpdated}</span>
+                ) : (
+                  <span className="font-medium">Belum ada data</span>
+                )}
+              </div>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                </svg>
+                Logout
+              </button>
             </div>
           </div>
         </div>
