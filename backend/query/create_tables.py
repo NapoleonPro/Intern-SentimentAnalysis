@@ -2,7 +2,6 @@ import os
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
-# Load environment variables from backend/.env
 load_dotenv()
 
 DB_USER = os.getenv('DB_USER')
@@ -12,11 +11,10 @@ DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 
 if not all([DB_USER, DB_PASS, DB_NAME, DB_HOST, DB_PORT]):
-    print("❌ Error: Database environment variables are not set.")
+    print("Error: Database environment variables are not set.")
     print("Please check your backend/.env file.")
     exit(1)
 
-# SQL statement to create the users table
 CREATE_USERS_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -28,9 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
 """
 
 def create_tables():
-    """
-    Connects to the database and creates the necessary tables.
-    """
+
     try:
         engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
         with engine.connect() as conn:

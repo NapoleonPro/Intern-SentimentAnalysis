@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# --- KONFIGURASI ---
 DB_USER = os.getenv('DB_USER')
 DB_PASS = os.getenv('DB_PASS')
 DB_NAME = os.getenv('DB_NAME')
@@ -39,7 +38,6 @@ def parse_indonesian_date(date_str):
     if not date_str: return None
     try:
         clean_str = date_str.lower().strip()
-        # Hapus spasi ganda/karakter aneh
         clean_str = re.sub(r'\s+', ' ', clean_str)
         
         parts = clean_str.split()
@@ -119,20 +117,17 @@ def run_scraper():
             old_articles_on_page = 0
             
             for item in articles:
-                # 1. Judul & Link
                 title_tag = item.select_one('h3.elementor-post__title a')
                 if not title_tag: continue
                 
                 title = title_tag.get_text(strip=True)
                 link = title_tag['href']
                 
-                # 2. Tanggal
                 date_tag = item.select_one('.elementor-post-date')
                 raw_date = date_tag.get_text(strip=True) if date_tag else ""
                 
                 date_obj = parse_indonesian_date(raw_date)
                 
-                # Cek Umur
                 date_status = check_date(date_obj)
                 
                 if date_status == 1: # Tua
@@ -145,16 +140,13 @@ def run_scraper():
                 if not any(x in title.lower() for x in ['pemerintah', 'pemprov', 'gubernur', 'wagub', 'sekda', 'aceh']):
                     continue
 
-                # Simpan
                 status = save_to_db(title, link, date_obj)
                 if status == "SAVED":
                     print(f"   ✅ [{raw_date}] {title[:40]}...")
                     total_saved += 1
                 elif status == "DUPLICATE":
-                    # print(f"   zzz Duplikat: {title[:20]}...")
                     pass
             
-            # Stop jika semua tua
             if old_articles_on_page == len(articles):
                 print(f"   🛑 Semua berita di halaman {page} sudah usang. Stop.")
                 keep_going = False

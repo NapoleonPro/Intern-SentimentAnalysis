@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- KONFIGURASI ---
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS") 
 DB_NAME = os.getenv("DB_NAME")
@@ -43,11 +42,10 @@ def parse_indonesian_date(date_str):
         parts = clean_str.split()
         if len(parts) < 3: return None
         
-        day = parts[0].zfill(2) # 26
-        month_name = parts[1]   # januari
-        year = parts[2]         # 2026
+        day = parts[0].zfill(2)
+        month_name = parts[1]
+        year = parts[2]
         
-        # Translate bulan
         month_num = ID_MONTHS.get(month_name)
         if not month_num: return None
         
@@ -60,15 +58,15 @@ def parse_indonesian_date(date_str):
 
 def check_date(date_obj):
     """Cek apakah tanggal masuk dalam 90 hari terakhir"""
-    if not date_obj: return 2 # Error/Skip
+    if not date_obj: return 2
     
     now = datetime.now()
     delta = now - date_obj
     
     if delta.days <= CUTOFF_DAYS:
-        return 0 # OK (Baru)
+        return 0
     else:
-        return 1 # Tua (Stop)
+        return 1
 
 def save_to_db(title, url, date_obj):
     try:
@@ -124,14 +122,12 @@ def run_scraper():
             old_articles_on_page = 0
             
             for item in articles:
-                # 1. Judul & Link
                 title_tag = item.select_one('h3.jeg_post_title a')
                 if not title_tag: continue
                 
                 title = title_tag.get_text(strip=True)
                 link = title_tag['href']
                 
-                # 2. Tanggal (Perlu parsing khusus)
                 date_tag = item.select_one('.jeg_meta_date a')
                 raw_date = date_tag.get_text(strip=True) if date_tag else ""
                 # Hapus ikon jam atau karakter aneh jika ada
@@ -139,14 +135,12 @@ def run_scraper():
                 
                 date_obj = parse_indonesian_date(raw_date)
                 
-                # Cek Umur Berita
                 date_status = check_date(date_obj)
                 
                 if date_status == 1:
                     old_articles_on_page += 1
-                    continue # Skip berita tua
+                    continue
                 
-                # Simpan
                 status = save_to_db(title, link, date_obj)
                 if status == "SAVED":
                     print(f"   ✅ [{raw_date}] {title[:40]}...")

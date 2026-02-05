@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- KONFIGURASI DATABASE ---
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS") 
 DB_NAME = os.getenv("DB_NAME")
@@ -51,11 +50,9 @@ def fetch_body(url):
         if not container:
             return "[GAGAL] Konten tidak ditemukan."
 
-        # Bersih-bersih
         for tag in container.select('.jeg_ad, script, style, .ads-wrapper'):
             tag.decompose()
 
-        # Ambil Teks
         paragraphs = container.find_all('p')
         text_content = "\n\n".join([p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)])
         

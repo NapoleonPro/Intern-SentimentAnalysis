@@ -11,7 +11,6 @@ import json
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 DB_USER = os.getenv('DB_USER')
 DB_PASS = os.getenv('DB_PASS')
@@ -50,7 +49,6 @@ def load_stopwords(filepath="stopwords_aceh.json"):
         return set()
 
 
-# Global stopwords (akan di-load saat runtime)
 STOPWORDS = set()
 
 
@@ -65,28 +63,20 @@ def clean_text(text):
     if not text:
         return []
     
-    # Lowercase
     text = text.lower()
     
-    # Hapus URL
     text = re.sub(r'http\S+|www\S+', '', text)
     
-    # Hapus email
     text = re.sub(r'\S+@\S+', '', text)
     
-    # Hapus angka standalone (tapi tetap pertahankan dalam kata)
     text = re.sub(r'\b\d+\b', '', text)
     
-    # Hapus karakter khusus, pertahankan huruf dan spasi
     text = re.sub(r'[^a-z\s]', ' ', text)
     
-    # Hapus spasi berlebih
     text = re.sub(r'\s+', ' ', text).strip()
     
-    # Tokenize
     words = text.split()
     
-    # Filter: minimal 3 karakter, bukan stopword
     words = [w for w in words if len(w) >= 3 and w not in STOPWORDS]
     
     return words
@@ -100,7 +90,6 @@ def extract_ngrams(words, n=2):
     ngrams = []
     for i in range(len(words) - n + 1):
         ngram = ' '.join(words[i:i+n])
-        # Pastikan tidak ada stopword dalam n-gram
         ngram_words = words[i:i+n]
         if not any(w in STOPWORDS for w in ngram_words):
             ngrams.append(ngram)
@@ -125,18 +114,14 @@ def calculate_term_frequencies(documents, include_unigrams=True, include_bigrams
     for doc in documents:
         words = clean_text(doc)
         
-        # Unigrams (kata tunggal)
         if include_unigrams:
-            # Filter kata tunggal yang terlalu pendek
             unigrams = [w for w in words if len(w) >= 4]
             all_terms.extend(unigrams)
         
-        # Bigrams (2 kata)
         if include_bigrams:
             bigrams = extract_ngrams(words, 2)
             all_terms.extend(bigrams)
         
-        # Trigrams (3 kata)
         if include_trigrams:
             trigrams = extract_ngrams(words, 3)
             all_terms.extend(trigrams)
@@ -161,7 +146,6 @@ def filter_by_frequency(term_counter, min_freq=3, max_freq_percentile=95):
     if not term_counter:
         return Counter()
     
-    # Calculate max frequency threshold
     all_freqs = sorted(term_counter.values(), reverse=True)
     if len(all_freqs) > 0:
         percentile_index = int(len(all_freqs) * (max_freq_percentile / 100))
@@ -169,7 +153,6 @@ def filter_by_frequency(term_counter, min_freq=3, max_freq_percentile=95):
     else:
         max_freq = float('inf')
     
-    # Filter
     filtered = Counter({
         term: freq for term, freq in term_counter.items()
         if min_freq <= freq <= max_freq
@@ -187,7 +170,6 @@ def get_articles_by_date(start_date=None, end_date=None, sentiment=None):
     Ambil artikel dari database berdasarkan filter
     """
     with engine.connect() as conn:
-        # Build query dinamis
         conditions = ["content IS NOT NULL", "content != ''"]
         params = {}
         
@@ -279,14 +261,12 @@ def generate_wordcloud_data(
     - List of dict: [{"text": "kata", "value": frequency}, ...]
     """
     
-    # Ensure stopwords are loaded
     global STOPWORDS
     if not STOPWORDS:
         STOPWORDS = load_stopwords()
         if not STOPWORDS:
             print("⚠️  Warning: No stopwords loaded. Results may contain noise.")
     
-    # Fetch articles
     if year and month:
         articles = get_articles_by_month(year, month, sentiment)
     else:
@@ -296,7 +276,6 @@ def generate_wordcloud_data(
         print("❌ No articles found for the specified criteria.")
         return []
     
-    # Print info
     print("\n" + "="*80)
     print("WORD CLOUD GENERATION - Data-Driven Edition")
     print("="*80)
@@ -322,10 +301,8 @@ def generate_wordcloud_data(
     print(', '.join(included))
     print("="*80)
     
-    # Combine all content
     all_content = [f"{row.title} {row.content}" for row in articles]
     
-    # Calculate term frequencies
     print("\n🔍 Extracting and counting terms...")
     term_frequencies = calculate_term_frequencies(
         all_content,
@@ -336,7 +313,6 @@ def generate_wordcloud_data(
     
     print(f"   Found {len(term_frequencies)} unique terms")
     
-    # Filter by frequency
     print(f"\n🔧 Filtering (min_freq={min_frequency})...")
     filtered_terms = filter_by_frequency(
         term_frequencies,
@@ -346,14 +322,12 @@ def generate_wordcloud_data(
     
     print(f"   After filtering: {len(filtered_terms)} terms")
     
-    # Get top N
     top_terms = filtered_terms.most_common(top_n)
     
     if not top_terms:
         print("\n⚠️  No terms found after filtering!")
         return []
     
-    # Format untuk word cloud library (react-wordcloud format)
     wordcloud_data = [
         {
             "text": term,
@@ -362,7 +336,6 @@ def generate_wordcloud_data(
         for term, freq in top_terms
     ]
     
-    # Print preview
     print(f"\n📊 TOP {min(20, len(wordcloud_data))} TERMS:")
     print(f"   {'Rank':<6} {'Term':<40} {'Frequency':>10}")
     print(f"   {'-'*6} {'-'*40} {'-'*10}")
@@ -387,18 +360,15 @@ def save_wordcloud_json(data, filename=None, metadata=None):
         print("⚠️  No data to save!")
         return None
     
-    # Generate filename if not provided
     if not filename:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"wordcloud_{timestamp}.json"
     
-    # Ensure .json extension
     if not filename.endswith('.json'):
         filename += '.json'
     
     output_path = f"/home/claude/{filename}"
     
-    # Prepare output
     output = {
         "wordcloud_data": data,
         "metadata": metadata or {},
@@ -435,12 +405,10 @@ def generate_for_api(params):
     - dict: {"success": bool, "data": [...], "metadata": {...}}
     """
     try:
-        # Load stopwords if not loaded
         global STOPWORDS
         if not STOPWORDS:
             STOPWORDS = load_stopwords()
         
-        # Extract params
         year = params.get('year')
         month = params.get('month')
         start_date = params.get('start_date')
@@ -451,7 +419,6 @@ def generate_for_api(params):
         include_bigrams = params.get('include_bigrams', True)
         include_trigrams = params.get('include_trigrams', True)
         
-        # Generate wordcloud
         data = generate_wordcloud_data(
             start_date=start_date,
             end_date=end_date,
@@ -464,7 +431,6 @@ def generate_for_api(params):
             include_trigrams=include_trigrams
         )
         
-        # Metadata
         metadata = {
             "filters": {
                 "year": year,
@@ -504,7 +470,6 @@ if __name__ == "__main__":
     print("WORD CLOUD GENERATOR V2 - Test Run")
     print("="*80)
     
-    # Load stopwords
     STOPWORDS = load_stopwords()
     
     if not STOPWORDS:
@@ -512,7 +477,6 @@ if __name__ == "__main__":
         print("Please run 'python analyze_corpus.py' first to generate stopwords.")
         exit(1)
     
-    # Example 1: Word cloud untuk berita Negatif di November 2025
     print("\n" + "="*80)
     print("Example 1: Negative news in November 2025")
     print("="*80)
@@ -537,18 +501,17 @@ if __name__ == "__main__":
             }
         )
     
-    # Example 2: Word cloud untuk semua sentimen Q4 2025
     print("\n" + "="*80)
     print("Example 2: All sentiment from Oct 1 - Dec 31, 2025")
     print("="*80)
     data_q4 = generate_wordcloud_data(
         start_date='2025-10-01',
         end_date='2025-12-31',
-        sentiment=None,  # Semua sentimen
+        sentiment=None,
         top_n=60,
         include_unigrams=True,
         include_bigrams=True,
-        include_trigrams=False  # Skip trigrams untuk variety
+        include_trigrams=False
     )
     
     if data_q4:
@@ -562,7 +525,6 @@ if __name__ == "__main__":
             }
         )
     
-    # Example 3: Word cloud khusus Bigrams & Trigrams (Phrases only)
     print("\n" + "="*80)
     print("Example 3: Bigrams & Trigrams only (December 2025, Negative)")
     print("="*80)
@@ -571,7 +533,7 @@ if __name__ == "__main__":
         month=12,
         sentiment='Negatif',
         top_n=40,
-        include_unigrams=False,  # Hanya phrase
+        include_unigrams=False,
         include_bigrams=True,
         include_trigrams=True
     )

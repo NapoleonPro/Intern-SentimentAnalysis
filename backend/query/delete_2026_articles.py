@@ -14,14 +14,12 @@ engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{D
 
 with engine.connect() as conn:
     try:
-        # First, let's count how many articles will be deleted
         count_query = text("SELECT COUNT(*) FROM articles WHERE EXTRACT(YEAR FROM published_date) = 2026")
         count_result = conn.execute(count_query).scalar_one()
         
         if count_result > 0:
             print(f"Ditemukan {count_result} artikel dari tahun 2026 yang akan dihapus.")
             
-            # Proceed with deletion
             delete_query = text("DELETE FROM articles WHERE EXTRACT(YEAR FROM published_date) = 2026")
             result = conn.execute(delete_query)
             conn.commit()

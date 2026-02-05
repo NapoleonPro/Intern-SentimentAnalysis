@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# --- KONFIGURASI ---
 DB_USER = os.getenv('DB_USER')
 DB_PASS = os.getenv('DB_PASS') 
 DB_NAME = os.getenv('DB_NAME')
@@ -90,7 +89,6 @@ def fetch_body(url):
             for tag in container.select(css_class):
                 tag.decompose()
 
-        # Ambil Teks dari Paragraf
         paragraphs = container.find_all(['p', 'div']) # Kadang teks ada di div di Elementor
         
         cleaned_text = []
@@ -104,7 +102,7 @@ def fetch_body(url):
         
         if not text_content: return "[GAGAL] Teks kosong setelah pembersihan."
         
-        return text_content # + f" [DEBUG: {used_selector}]" # Uncomment untuk debug
+        return text_content
 
     except Exception as e:
         return f"[ERROR] {e}"

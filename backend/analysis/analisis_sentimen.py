@@ -1,19 +1,12 @@
-"""
-SENTIMENT ANALYSIS - AI-FOCUSED VERSION
-Menggunakan IndoBERT sebagai engine utama dengan minimal rule-based intervention
-"""
-
 import os
 from sqlalchemy import create_engine, text
 from transformers import pipeline
 from dotenv import load_dotenv
 import logging
 
-# Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Load environment variables
 load_dotenv()
 DB_USER = os.getenv('DB_USER')
 DB_PASS = os.getenv('DB_PASS')
@@ -21,7 +14,6 @@ DB_NAME = os.getenv('DB_NAME')
 
 engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@localhost:5432/{DB_NAME}')
 
-# Inisialisasi model sekali saja (lebih efisien)
 logger.info("Loading IndoBERT model...")
 sentiment_analyzer = pipeline(
     "sentiment-analysis",
@@ -33,7 +25,7 @@ logger.info("Model loaded successfully!")
 
 
 def get_data():
-    """Ambil data artikel dari database"""
+    
     with engine.connect() as conn:
         query = text("""
             SELECT id, title, content 
@@ -45,7 +37,7 @@ def get_data():
 
 
 def save_result(article_id: int, label: str, score: float, notes: str = ''):
-    """Simpan hasil analisis ke database"""
+    
     label_map = {
         'positive': 'Positif',
         'neutral': 'Netral', 
@@ -74,27 +66,17 @@ def save_result(article_id: int, label: str, score: float, notes: str = ''):
 
 
 def analyze_sentiment(title: str, content: str):
-    """
-    Analisis sentimen menggunakan IndoBERT
-    
-    Returns:
-        (label, confidence_score, notes)
-    """
-    # Gabungkan title dan content, prioritaskan title karena biasanya lebih informatif
+
     full_text = f"{title}. {content}"
     
-    # Batasi panjang teks untuk analisis (ambil bagian paling penting)
-    # Title + 800 karakter pertama content biasanya sudah cukup representatif
     text_for_analysis = full_text[:1200]
     
     try:
-        # Analisis dengan IndoBERT
         result = sentiment_analyzer(text_for_analysis)[0]
         
         label = result['label']
         score = result['score']
         
-        # Kategorikan confidence level untuk catatan
         if score >= 0.85:
             conf_note = "Very High Confidence"
         elif score >= 0.70:
@@ -114,7 +96,7 @@ def analyze_sentiment(title: str, content: str):
 
 
 def run_analysis():
-    """Jalankan analisis sentimen"""
+    
     print("=" * 100)
     print("SENTIMENT ANALYSIS - AI-FOCUSED (IndoBERT)")
     print("=" * 100)
@@ -132,13 +114,10 @@ def run_analysis():
         try:
             label, score, notes = analyze_sentiment(title, content)
             
-            # Simpan hasil
             save_result(article_id, label, score, notes)
             
-            # Update statistik
             stats[label] += 1
             
-            # Track confidence distribution
             if score >= 0.85:
                 confidence_levels['very_high'] += 1
             elif score >= 0.70:
@@ -148,7 +127,6 @@ def run_analysis():
             else:
                 confidence_levels['low'] += 1
             
-            # Display progress
             label_display = label.upper()[:3]
             conf_bar = "█" * int(score * 10) + "░" * (10 - int(score * 10))
             
@@ -159,7 +137,6 @@ def run_analysis():
             save_result(article_id, 'neutral', 0.5, f"Processing error: {str(e)}")
             stats['neutral'] += 1
     
-    # Tampilkan ringkasan
     print("\n" + "=" * 100)
     print("RINGKASAN HASIL ANALISIS:")
     print("-" * 100)
@@ -175,7 +152,3 @@ def run_analysis():
     print("=" * 100)
     print("\n✓ Semua artikel berhasil dianalisis dengan IndoBERT")
     print("✓ Hasil disimpan di database dengan method: 'IndoBERT'")
-
-
-if __name__ == "__main__":
-    run_analysis()

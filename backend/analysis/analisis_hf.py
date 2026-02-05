@@ -8,34 +8,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-# --- KONFIGURASI ---
 DB_USER = os.getenv('DB_USER')
 DB_PASS = os.getenv('DB_PASS') 
 DB_NAME = os.getenv('DB_NAME')
 DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 
-# --- API KEY HUGGING FACE ---
-HF_TOKEN = os.getenv('HUGGINGFACE_API_KEY') # <-- Tempel token kamu disini
+HF_TOKEN = os.getenv('HUGGINGFACE_API_KEY') # 
 
-# Kita pakai Qwen 2.5 72B (Model Terpintar Open Source saat ini)
-# Gratis tis tis lewat API Hugging Face
+
+
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
 
 client = InferenceClient(api_key=HF_TOKEN)
 engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
 
 def get_sentiment_batch(berita_list):
-    """
-    Mengirim 3 berita sekaligus ke Hugging Face API.
-    """
+
     system_prompt = "Kamu adalah ahli analisis sentimen berita politik Aceh. Tugasmu hanya satu: Keluarkan hasil klasifikasi dalam format JSON murni."
     
     user_content = "Analisis sentimen berita berikut menjadi salah satu dari: POS (Positif), NEG (Negatif), atau NEUT (Netral).\n\n"
     
     for i, (b_id, content) in enumerate(berita_list):
-        # Potong teks jadi 400 karakter biar hemat token & proses lebih cepat
+
         snippet = content[:400].replace("\n", " ").replace('"', "'")
         user_content += f"ID_{b_id}: \"{snippet}...\"\n"
     
@@ -54,25 +49,25 @@ def get_sentiment_batch(berita_list):
         response = client.chat_completion(
             model=MODEL_ID,
             messages=messages,
-            max_tokens=500,  # Token output secukupnya untuk JSON
-            temperature=0.1  # Agar jawaban konsisten
+            max_tokens=500,  
+            temperature=0.1  
         )
         
         raw_json = response.choices[0].message.content
-        # Bersihkan markdown ```json jika ada
+        
         clean_json = re.sub(r"```json|```", "", raw_json).strip()
         
         parsed = json.loads(clean_json)
         
-        # Normalisasi output jadi list
+        
         if isinstance(parsed, list): return parsed
         elif isinstance(parsed, dict): return [parsed]
         return []
 
     except Exception as e:
         error_msg = str(e)
-        # Deteksi Error Khas Hugging Face Serverless
-        # 503 = Server Busy, 429 = Rate Limit, Loading = Model lagi loading
+        
+        
         if "503" in error_msg or "429" in error_msg or "Loading" in error_msg:
             return "SERVER_BUSY"
         
@@ -80,12 +75,12 @@ def get_sentiment_batch(berita_list):
         return []
 
 def run_analysis():
-    BATCH_SIZE = 3       # Tetap 3 agar tidak sering kena Rate Limit
-    SLEEP_TIME = 2       # Jeda standar
+    BATCH_SIZE = 3       
+    SLEEP_TIME = 2       
     
     print("🔄 Mengambil SEMUA data berita dari database...")
     
-    # QUERY RE-ANALYSIS TOTAL (Tanpa filter sentiment IS NULL)
+    
     with engine.connect() as conn:
         articles = conn.execute(text("""
             SELECT id, content 
@@ -95,7 +90,7 @@ def run_analysis():
         """)).fetchall()
     
     if not articles:
-        print("❌ Tidak ada berita untuk diproses.")
+        print(" Tidak ada berita untuk diproses.")
         return
 
     print(f"🚀 Memulai Re-Analysis Total via Hugging Face ({len(articles)} berita)...")
@@ -109,22 +104,21 @@ def run_analysis():
         
         print(f"[{i+1}/{len(chunks)}] Batch {len(data_to_send)} item...", end=" ")
         
-        # Loop Retry sampai berhasil (Fitur Anti-Nyerah)
+    
         while True: 
             results = get_sentiment_batch(data_to_send)
             
             if results == "SERVER_BUSY":
                 print("\n   ⏳ Server HF sibuk/loading. Tunggu 10 detik...", end=" ")
                 time.sleep(10)
-                continue # Coba lagi batch yang sama
+                continue 
             
-            break # Jika sukses atau error lain (selain busy), lanjut
+            break 
         
         if results:
             with engine.connect() as conn:
                 for res in results:
                     try:
-                        # Parsing ID
                         raw_id = str(res.get('id', '')).replace('ID_', '')
                         clean_id = int(re.sub(r'\D', '', raw_id))
                         
@@ -133,7 +127,7 @@ def run_analysis():
                         if raw_label not in label_map: raw_label = 'NEUT'
                         final_label = label_map[raw_label]
                         
-                        # UPDATE (Menimpa sentimen lama)
+                        
                         conn.execute(
                             text("UPDATE articles SET sentiment_label = :s, analysis_method = 'Qwen/72B-Instruct', updated_at = NOW() WHERE id = :id"),
                             {"s": final_label, "id": clean_id}
@@ -143,11 +137,8 @@ def run_analysis():
             print(f"✅ Ok ({len(results)} saved)")
             total_updated += len(results)
         else:
-            print("❌ Gagal parsing/API Error")
+            print("Gagal parsing/API Error")
 
         time.sleep(SLEEP_TIME)
 
-    print(f"🏁 Selesai Bos! Total {total_updated} berita berhasil di-update.")
-
-if __name__ == "__main__":
-    run_analysis()
+    print(f"Selesai Bos! Total {total_updated} berita berhasil di-update.")
