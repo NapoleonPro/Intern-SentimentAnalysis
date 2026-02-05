@@ -71,7 +71,7 @@ def get_sentiment_batch(berita_list):
         if "503" in error_msg or "429" in error_msg or "Loading" in error_msg:
             return "SERVER_BUSY"
         
-        print(f"   ⚠️ Error HF: {e}")
+        print(f" Error HF: {e}")
         return []
 
 def run_analysis():
