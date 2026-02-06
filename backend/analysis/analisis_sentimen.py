@@ -152,3 +152,5 @@ def run_analysis():
     print("=" * 100)
     print("\n✓ Semua artikel berhasil dianalisis dengan IndoBERT")
     print("✓ Hasil disimpan di database dengan method: 'IndoBERT'")
+
+run_analysis()
